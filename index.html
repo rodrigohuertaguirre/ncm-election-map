@@ -1055,7 +1055,7 @@ Object.keys(cityMapConfigs).forEach(function(cityKey) {
                 regionBar.onAdd = function() {
                     var div = L.DomUtil.create('div', 'region-bar');
                     L.DomEvent.disableClickPropagation(div);
-                    var html = '<button data-city="all">All three</button>';
+                    var html = '<button data-city="all">All municipalities</button>';
                     Object.keys(cityConfig).forEach(function(key) {
                         html += '<button data-city="' + key + '">' + cityConfig[key].label + '</button>';
                     });
