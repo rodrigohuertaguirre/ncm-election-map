@@ -911,11 +911,16 @@ Object.keys(cityMapConfigs).forEach(function(cityKey) {
                 mouseout: function() {
                     infoBox.update(pinnedHtml || defaultHtml);
                 },
-                click: function(e) {
+               click: function(e) {
                     L.DomEvent.stopPropagation(e);
-                    pinnedHtml = html;
-                    infoBox.update(html);
-                }
+                    if (pinnedHtml === html) {
+                        pinnedHtml = null;
+                        infoBox.update(defaultHtml);
+                    } else {
+                        pinnedHtml = html;
+                        infoBox.update(html);
+                    }
+               }
             });
         }
     }).addTo(map);
@@ -959,7 +964,9 @@ Object.keys(cityMapConfigs).forEach(function(cityKey) {
                 var cityConfig = {
                     toronto: {
                         label: 'Toronto',
-                        stories: []
+                        stories: [
+                            {title: 'Newcomer candidates on Greater Toronto Area ballots don't see a level-playing field", url:'https://newcanadianmedia.ca/newcomer-candidates-on-greater-toronto-area-ballots-dont-see-a-level-playing-field/' }
+                        ]
                     },
                     mississauga: {
                         label: 'Mississauga',
@@ -969,9 +976,15 @@ Object.keys(cityMapConfigs).forEach(function(cityKey) {
                     },
                     brampton: {
                         label: 'Brampton',
-                        stories: []
+                        stories: [
+                            { title: 'Newcomers across GTA not a priority in transit planning', url: 'https://newcanadianmedia.ca/newcomers-across-gta-not-a-priority-in-transit-planning/' },
+                        ]
                     }
                 };
+        // Stories that cover all three cities (shown first under "All regions")
+                var regionStories = [
+                    { title: 'Nigerian born candidates upping representation in Ontario', url: 'https://newcanadianmedia.ca/nigerian-born-candidates-upping-immigrant-representation-in-ontario/' }
+                ];
 
                 var cityBounds = {};
                 var cityMarkers = {};
@@ -1019,30 +1032,40 @@ Object.keys(cityMapConfigs).forEach(function(cityKey) {
                     return this._div;
                 };
 
-                storiesBox.show = function(key) {
-                    var keys = (key === 'all') ? Object.keys(cityConfig) : [key];
-                    var html = '<span class="stories-close">&times;</span>';
-                    html += '<h3>' + (key === 'all' ? 'All coverage' : cityConfig[key].label + ' coverage') + '</h3>';
-
-                    keys.forEach(function(k) {
-                        var cfg = cityConfig[k];
-                        if (key === 'all') {
-                            html += '<div class="stories-city">' + cfg.label + '</div>';
-                        }
-                        if (cfg.stories.length) {
-                            html += '<ul>';
-                            cfg.stories.forEach(function(s) {
-                                html += '<li><a href="' + s.url + '" target="_blank" rel="noopener">' + s.title + '</a></li>';
-                            });
-                            html += '</ul>';
-                        } else {
-                            html += '<em>Stories coming soon.</em>';
-                        }
+               storiesBox.show = function(key) {
+                var keys = (key === 'all') ? Object.keys(cityConfig) : [key];
+                var html = '<span class="stories-close">&times;</span>';
+                html += '<h3>' + (key === 'all' ? 'All coverage' : cityConfig[key].label + ' coverage') + '</h3>';
+            
+                // Region-wide stories come first, only in the "all" view
+                if (key === 'all' && regionStories.length) {
+                    html += '<div class="stories-city">Region-wide</div>';
+                    html += '<ul>';
+                    regionStories.forEach(function(s) {
+                        html += '<li><a href="' + s.url + '" target="_blank" rel="noopener">' + s.title + '</a></li>';
                     });
-
+                    html += '</ul>';
+                }
+            
+                keys.forEach(function(k) {
+                    var cfg = cityConfig[k];
+                    if (key === 'all') {
+                        html += '<div class="stories-city">' + cfg.label + '</div>';
+                    }
+                    if (cfg.stories.length) {
+                        html += '<ul>';
+                        cfg.stories.forEach(function(s) {
+                            html += '<li><a href="' + s.url + '" target="_blank" rel="noopener">' + s.title + '</a></li>';
+                        });
+                        html += '</ul>';
+                    } else {
+                        html += '<em>Stories coming soon.</em>';
+                    }
+                    });
+                
                     this._div.innerHTML = html;
                     this._div.style.display = 'block';
-                };
+        };
 
                 storiesBox.hide = function() {
                     this._div.style.display = 'none';
@@ -1055,7 +1078,7 @@ Object.keys(cityMapConfigs).forEach(function(cityKey) {
                 regionBar.onAdd = function() {
                     var div = L.DomUtil.create('div', 'region-bar');
                     L.DomEvent.disableClickPropagation(div);
-                    var html = '<button data-city="all">All municipalities</button>';
+                    var html = '<button data-city="all">All regions</button>';
                     Object.keys(cityConfig).forEach(function(key) {
                         html += '<button data-city="' + key + '">' + cityConfig[key].label + '</button>';
                     });
